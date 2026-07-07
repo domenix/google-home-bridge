@@ -1,0 +1,33 @@
+configuration:
+  mode:
+    name: Exposure mode
+    description: >-
+      How Google reaches your instance. "cloudflared" runs a Cloudflare Tunnel
+      (no port forwarding needed), "direct" serves TLS on port 8124 using
+      certificates from /ssl (you port-forward 443 to it), "external" assumes
+      you already have a public HTTPS reverse proxy in front of Home Assistant.
+  public_url:
+    name: Public URL
+    description: >-
+      The public HTTPS base URL Google will use, e.g. https://ha-bridge.example.com.
+      Required for cloudflared and direct modes; for external mode use your
+      existing external URL.
+  cloudflared_token:
+    name: Cloudflare Tunnel token
+    description: >-
+      Token of a remotely-managed Cloudflare Tunnel whose public hostname routes
+      to http://localhost:8124. Only used in cloudflared mode.
+  certfile:
+    name: TLS certificate file
+    description: Certificate in /ssl, used in direct mode.
+  keyfile:
+    name: TLS private key file
+    description: Private key in /ssl, used in direct mode.
+  install_integration:
+    name: Install the cloud shim integration
+    description: >-
+      Automatically install/update the bundled custom integration into
+      /config/custom_components/cloud. Disable only if you manage it yourself.
+  log_level:
+    name: Log level
+    description: Bridge log verbosity.

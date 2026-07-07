@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Google Home Bridge</title>
+<style>
+  :root {
+    --bg: #111318; --card: #1c1f26; --text: #e8eaed; --muted: #9aa0a6;
+    --accent: #8ab4f8; --ok: #81c995; --warn: #fdd663; --err: #f28b82;
+    --border: #3c4043;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7f9; --card: #ffffff; --text: #202124; --muted: #5f6368;
+      --accent: #1a73e8; --ok: #188038; --warn: #b06000; --err: #c5221f;
+      --border: #dadce0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, sans-serif; max-width: 880px; margin-inline: auto;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  p.sub { color: var(--muted); margin-top: 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin: 16px 0;
+  }
+  .pill {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; margin: 2px 6px 2px 0;
+    border: 1px solid var(--border);
+  }
+  .pill.ok { color: var(--ok); border-color: var(--ok); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .pill.err { color: var(--err); border-color: var(--err); }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input[type=text], textarea {
+    width: 100%; padding: 8px 10px; border-radius: 8px; font: inherit;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  textarea { font-family: ui-monospace, monospace; font-size: 12px; min-height: 110px; }
+  button {
+    font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--card); color: var(--accent);
+    cursor: pointer; margin: 8px 8px 0 0;
+  }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
+  code, .value {
+    font-family: ui-monospace, monospace; font-size: 13px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 6px;
+  }
+  .copyrow {
+    display: flex; align-items: center; gap: 8px; margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .copyrow .value { flex: 1; min-width: 200px; overflow-x: auto; white-space: nowrap; padding: 6px 8px; }
+  .copyrow button { margin: 0; padding: 4px 10px; font-size: 12px; }
+  ol li { margin: 6px 0; }
+  pre {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; overflow-x: auto; font-size: 12px;
+  }
+  .msg { font-size: 13px; margin-top: 8px; }
+  .msg.ok { color: var(--ok); }
+  .msg.err { color: var(--err); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Google Home Bridge</h1>
+<p class="sub">Self-hosted Google Assistant voice control — no Nabu Casa subscription needed.</p>
+
+<div class="card">
+  <h2>Status</h2>
+  <div id="status-pills">Loading…</div>
+  <div id="status-actions"></div>
+  <div id="status-msg" class="msg"></div>
+</div>
+
+<div class="card">
+  <h2>1 · Public endpoint</h2>
+  <p>Google must reach this instance over HTTPS. Current mode: <code id="mode"></code></p>
+  <label for="public_url">Public base URL (https://…)</label>
+  <input type="text" id="public_url" placeholder="https://ha-bridge.example.com">
+  <button id="btn-test">Test reachability</button>
+  <div id="test-msg" class="msg"></div>
+</div>
+
+<div class="card">
+  <h2>2 · Home Assistant proxy trust</h2>
+  <p>Add this to <code>configuration.yaml</code> so Home Assistant trusts the bridge (once, then restart):</p>
+  <pre>http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.30.32.0/23</pre>
+</div>
+
+<div class="card">
+  <h2>3 · Google project</h2>
+  <ol>
+    <li>Open the <a href="https://console.home.google.com/projects" target="_blank">Google Home Developer Console</a> and create a project.</li>
+    <li>Add a <b>Cloud-to-cloud</b> integration.</li>
+    <li>Fill in these values:</li>
+  </ol>
+  <div class="copyrow"><span>Fulfillment URL</span><span class="value" id="v-fulfill"></span><button data-copy="v-fulfill">Copy</button></div>
+  <div class="copyrow"><span>Authorization URL</span><span class="value" id="v-auth"></span><button data-copy="v-auth">Copy</button></div>
+  <div class="copyrow"><span>Token URL</span><span class="value" id="v-token"></span><button data-copy="v-token">Copy</button></div>
+  <div class="copyrow"><span>Client ID</span><span class="value" id="v-client"></span><button data-copy="v-client">Copy</button></div>
+  <div class="copyrow"><span>Client secret</span><span class="value">anything (unused by Home Assistant)</span></div>
+  <label for="project_id">Google project ID (from the developer console URL)</label>
+  <input type="text" id="project_id" placeholder="my-home-1a2b3">
+</div>
+
+<div class="card">
+  <h2>4 · Service account (report state)</h2>
+  <ol>
+    <li>In <a href="https://console.cloud.google.com/apis/library/homegraph.googleapis.com" target="_blank">Google Cloud Console</a>, select the same project and <b>enable the HomeGraph API</b>.</li>
+    <li>Create a <a href="https://console.cloud.google.com/apis/credentials/serviceaccountkey" target="_blank">service account key</a> (JSON) and paste it below.</li>
+  </ol>
+  <label for="service_account">Service account JSON</label>
+  <textarea id="service_account" placeholder='{"type": "service_account", …}'></textarea>
+  <button id="btn-save" class="primary">Save configuration</button>
+  <div id="save-msg" class="msg"></div>
+</div>
+
+<div class="card">
+  <h2>5 · Link &amp; go</h2>
+  <ol>
+    <li>In the Google Home app: <b>+ Add device → Works with Google Home</b> and pick <code>[test] your project name</code>.</li>
+    <li>Log in with your Home Assistant credentials — devices sync automatically.</li>
+    <li>Pick which entities Google sees under <b>Settings → Voice assistants → Expose</b>, exactly like Nabu Casa.</li>
+  </ol>
+  <button id="btn-sync">Synchronize entities now</button>
+  <div id="sync-msg" class="msg"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const api = (path, body) => fetch("api/" + path, body ? {
+  method: "POST", headers: {"Content-Type": "application/json"},
+  body: JSON.stringify(body)
+} : undefined).then(async r => {
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+});
+
+function pill(label, state) {
+  return `<span class="pill ${state}">${label}</span>`;
+}
+
+function updateValues() {
+  const base = ($("public_url").value || "").replace(/\/+$/, "");
+  const project = $("project_id").value || "YOUR_PROJECT_ID";
+  $("v-fulfill").textContent = base ? base + "/api/google_assistant" : "— set public URL —";
+  $("v-auth").textContent = base ? base + "/auth/authorize" : "— set public URL —";
+  $("v-token").textContent = base ? base + "/auth/token" : "— set public URL —";
+  $("v-client").textContent = "https://oauth-redirect.googleusercontent.com/r/" + project;
+}
+
+async function refresh() {
+  try {
+    const s = await api("status");
+    $("mode").textContent = s.mode;
+    if (!$("public_url").value) {
+      $("public_url").value = (s.bridge && s.bridge.public_url) || s.public_url || "";
+    }
+    if (s.bridge && s.bridge.project_id && !$("project_id").value) {
+      $("project_id").value = s.bridge.project_id;
+    }
+    let html = "";
+    html += pill(s.integration_installed ? "Integration installed" : "Integration missing",
+                 s.integration_installed ? "ok" : "err");
+    if (s.integration_installed && !s.integration_up_to_date)
+      html += pill("Integration outdated", "warn");
+    html += pill(s.shim_active ? "Cloud shim active" : "Cloud shim inactive (restart HA?)",
+                 s.shim_active ? "ok" : "warn");
+    if (s.mode === "cloudflared")
+      html += pill(s.cloudflared_running ? "Tunnel up" : "Tunnel down",
+                   s.cloudflared_running ? "ok" : "err");
+    if (s.bridge) {
+      html += pill(s.bridge.has_service_account ? "Service account set" : "No service account",
+                   s.bridge.has_service_account ? "ok" : "warn");
+      html += pill(s.bridge.agent_users.length
+                   ? `Google linked (${s.bridge.agent_users.length})` : "Not linked yet",
+                   s.bridge.agent_users.length ? "ok" : "warn");
+      html += pill(`${s.bridge.exposed_entity_count} entities exposed`, "ok");
+    }
+    $("status-pills").innerHTML = html;
+
+    let actions = "";
+    if (!s.integration_installed || !s.integration_up_to_date)
+      actions += '<button id="btn-install" class="primary">Install / update integration</button>';
+    if (s.restart_required || (s.integration_installed && !s.shim_active))
+      actions += '<button id="btn-restart">Restart Home Assistant</button>';
+    $("status-actions").innerHTML = actions;
+    if ($("btn-install")) $("btn-install").onclick = async () => {
+      await api("install", {});
+      $("status-msg").textContent = "Installed. Restart Home Assistant to activate.";
+      refresh();
+    };
+    if ($("btn-restart")) $("btn-restart").onclick = async () => {
+      $("status-msg").textContent = "Restarting Home Assistant…";
+      await api("restart_core", {});
+      setTimeout(refresh, 15000);
+    };
+    updateValues();
+  } catch (err) {
+    $("status-pills").innerHTML = pill("Cannot reach add-on API", "err");
+    $("status-msg").textContent = err.message;
+  }
+}
+
+$("public_url").addEventListener("input", updateValues);
+$("project_id").addEventListener("input", updateValues);
+
+document.querySelectorAll("button[data-copy]").forEach(button => {
+  button.onclick = () => {
+    navigator.clipboard.writeText($(button.dataset.copy).textContent);
+    button.textContent = "Copied";
+    setTimeout(() => (button.textContent = "Copy"), 1200);
+  };
+});
+
+$("btn-test").onclick = async () => {
+  $("test-msg").className = "msg";
+  $("test-msg").textContent = "Testing…";
+  try {
+    const result = await api("test_public", {public_url: $("public_url").value});
+    $("test-msg").className = result.ok ? "msg ok" : "msg err";
+    $("test-msg").textContent = result.ok
+      ? "Reachable — login page and fulfillment endpoint respond correctly."
+      : "Unexpected responses: " + JSON.stringify(result.checks) +
+        " (expected auth_providers=200, fulfillment=401)";
+  } catch (err) {
+    $("test-msg").className = "msg err";
+    $("test-msg").textContent = err.message;
+  }
+};
+
+$("btn-save").onclick = async () => {
+  $("save-msg").className = "msg";
+  $("save-msg").textContent = "Saving…";
+  try {
+    const body = {
+      project_id: $("project_id").value.trim(),
+      public_url: $("public_url").value.trim(),
+    };
+    if ($("service_account").value.trim())
+      body.service_account = $("service_account").value.trim();
+    const result = await api("config", body);
+    $("save-msg").className = "msg ok";
+    $("save-msg").textContent = result.validated
+      ? "Saved — service account validated against the HomeGraph API."
+      : "Saved.";
+    $("service_account").value = "";
+    refresh();
+  } catch (err) {
+    $("save-msg").className = "msg err";
+    $("save-msg").textContent = err.message;
+  }
+};
+
+$("btn-sync").onclick = async () => {
+  $("sync-msg").className = "msg";
+  $("sync-msg").textContent = "Requesting sync…";
+  try {
+    await api("sync", {});
+    $("sync-msg").className = "msg ok";
+    $("sync-msg").textContent = "Google acknowledged the sync request.";
+  } catch (err) {
+    $("sync-msg").className = "msg err";
+    $("sync-msg").textContent = err.message;
+  }
+};
+
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

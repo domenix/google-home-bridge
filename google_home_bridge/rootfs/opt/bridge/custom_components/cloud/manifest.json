@@ -1,0 +1,11 @@
+{
+  "domain": "cloud",
+  "name": "Home Assistant Cloud (Google Home Bridge)",
+  "codeowners": [],
+  "dependencies": ["auth", "http", "webhook", "websocket_api"],
+  "documentation": "https://github.com/domenix/google-home-bridge",
+  "integration_type": "system",
+  "iot_class": "cloud_push",
+  "requirements": [],
+  "version": "1.0.0"
+}
