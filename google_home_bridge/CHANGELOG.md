@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+- Fix "Failed to load services.yaml for integration: cloud" error at startup
+  (shim registers remote_connect/remote_disconnect but shipped no
+  services.yaml)
+
 ## 1.2.0
 
 - Local fulfillment support: shim keeps the local SDK in step with the
