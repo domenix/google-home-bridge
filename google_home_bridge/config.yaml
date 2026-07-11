@@ -1,5 +1,5 @@
 name: Google Home Bridge
-version: 1.2.1
+version: 1.2.2
 slug: google_home_bridge
 description: Self-hosted Google Home / Google Assistant voice control — replaces the Nabu Casa Google integration
 url: https://github.com/domenix/google-home-bridge

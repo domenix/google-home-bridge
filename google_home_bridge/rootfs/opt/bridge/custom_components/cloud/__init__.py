@@ -31,6 +31,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.components.google_assistant.http import GoogleAssistantView
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.typing import ConfigType
@@ -166,4 +167,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.services.async_register(DOMAIN, "remote_disconnect", _noop_remote)
 
     _LOGGER.info("Google Home Bridge cloud shim is active")
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Accept the config entry left behind by Home Assistant Cloud.
+
+    All actual setup happens in async_setup; the entry only exists so the
+    migration back to Nabu Casa stays trivial.
+    """
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload the config entry."""
     return True

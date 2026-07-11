@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2
+
+- Fix "Platform cloud.config_flow not found" error: ship the system config
+  flow + entry setup so the config entry left behind by Home Assistant Cloud
+  loads cleanly against the shim
+
 ## 1.2.1
 
 - Fix "Failed to load services.yaml for integration: cloud" error at startup
