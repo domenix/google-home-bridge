@@ -86,7 +86,9 @@
 
 <div class="card">
   <h2>1 · Public endpoint</h2>
-  <p>Google must reach this instance over HTTPS. Current mode: <code id="mode"></code></p>
+  <p>Google must reach this instance over HTTPS. Current mode: <code id="mode"></code>
+     (set in the add-on <b>Configuration</b> tab)</p>
+  <div id="mode-help"></div>
   <label for="public_url">Public base URL (https://…)</label>
   <input type="text" id="public_url" placeholder="https://ha-bridge.example.com">
   <button id="btn-test">Test reachability</button>
@@ -105,17 +107,25 @@
 <div class="card">
   <h2>3 · Google project</h2>
   <ol>
-    <li>Open the <a href="https://console.home.google.com/projects" target="_blank">Google Home Developer Console</a> and create a project.</li>
-    <li>Add a <b>Cloud-to-cloud</b> integration.</li>
-    <li>Fill in these values:</li>
+    <li>In the <a href="https://console.home.google.com/projects" target="_blank">Google Home Developer Console</a>,
+      <b>Create a project</b>, then add a <b>Cloud-to-cloud</b> integration.</li>
+    <li>Copy the project ID from the console URL here — the values below are built from it:</li>
   </ol>
-  <div class="copyrow"><span>Fulfillment URL</span><span class="value" id="v-fulfill"></span><button data-copy="v-fulfill">Copy</button></div>
+  <label for="project_id">Google project ID</label>
+  <input type="text" id="project_id" placeholder="my-home-1a2b3">
+  <ol start="3">
+    <li>Fill the console form top to bottom:</li>
+  </ol>
+  <div class="copyrow"><span>Integration name</span><span class="value">anything, e.g. Home Assistant</span></div>
+  <div class="copyrow"><span>Device type</span><span class="value">any — e.g. Control Bridge</span></div>
+  <div class="copyrow"><span>App icon</span><span class="value">144×144 transparent PNG, file name = project ID</span><button id="btn-icon">Download icon</button></div>
+  <div class="copyrow"><span>OAuth Client ID</span><span class="value" id="v-client"></span><button data-copy="v-client">Copy</button></div>
+  <div class="copyrow"><span>Client secret</span><span class="value">anything (unused by Home Assistant)</span></div>
   <div class="copyrow"><span>Authorization URL</span><span class="value" id="v-auth"></span><button data-copy="v-auth">Copy</button></div>
   <div class="copyrow"><span>Token URL</span><span class="value" id="v-token"></span><button data-copy="v-token">Copy</button></div>
-  <div class="copyrow"><span>Client ID</span><span class="value" id="v-client"></span><button data-copy="v-client">Copy</button></div>
-  <div class="copyrow"><span>Client secret</span><span class="value">anything (unused by Home Assistant)</span></div>
-  <label for="project_id">Google project ID (from the developer console URL)</label>
-  <input type="text" id="project_id" placeholder="my-home-1a2b3">
+  <div class="copyrow"><span>Cloud fulfillment URL</span><span class="value" id="v-fulfill"></span><button data-copy="v-fulfill">Copy</button></div>
+  <p>Leave the rest at defaults — <b>Local fulfillment</b> off, no scopes, basic-auth
+     checkbox unchecked — and <b>Save</b>.</p>
 </div>
 
 <div class="card">
@@ -156,6 +166,41 @@ function pill(label, state) {
   return `<span class="pill ${state}">${label}</span>`;
 }
 
+function modeHelp(s) {
+  if (s.mode === "cloudflared") {
+    if (!s.cloudflared_token_set) {
+      return `<p><b>Tunnel not configured yet.</b> The tunnel runs inside this add-on —
+        it only needs a token (free Cloudflare account with your domain on it):</p>
+      <ol>
+        <li>Open <a href="https://one.dash.cloudflare.com/" target="_blank">Cloudflare Zero Trust</a>
+          → <b>Networks → Tunnels → Create a tunnel</b> (type: Cloudflared).</li>
+        <li>On the connector page, copy the token — the long string after
+          <code>--token</code> in the install command.</li>
+        <li>Paste it into the add-on <b>Configuration</b> tab as
+          <code>cloudflared_token</code>, save, restart the add-on.</li>
+        <li>Back in Cloudflare, add a <b>Public hostname</b>
+          (e.g. <code>ha-bridge.example.com</code>) with service
+          <code>http://localhost:8124</code>.</li>
+        <li>Enter that hostname as the URL below.</li>
+      </ol>`;
+    }
+    if (!s.cloudflared_running) {
+      return `<p class="msg err">Token is set but the tunnel is down — check the add-on
+        log. Usual causes: token pasted incompletely, or the tunnel was deleted in
+        Cloudflare.</p>`;
+    }
+    return `<p>Tunnel is running inside this add-on. Enter the public hostname you
+      configured in Cloudflare (service <code>http://localhost:8124</code>) below.</p>`;
+  }
+  if (s.mode === "direct") {
+    return `<p>This add-on serves TLS itself on port 8124 using certificates from
+      <code>/ssl</code>. Forward port <b>443 → 8124</b> on your router and enter your
+      domain below.</p>`;
+  }
+  return `<p>You already publish Home Assistant over HTTPS (reverse proxy, VPN edge, …).
+    Enter that public URL below.</p>`;
+}
+
 function updateValues() {
   const base = ($("public_url").value || "").replace(/\/+$/, "");
   const project = $("project_id").value || "YOUR_PROJECT_ID";
@@ -169,6 +214,7 @@ async function refresh() {
   try {
     const s = await api("status");
     $("mode").textContent = s.mode;
+    $("mode-help").innerHTML = modeHelp(s);
     if (!$("public_url").value) {
       $("public_url").value = (s.bridge && s.bridge.public_url) || s.public_url || "";
     }
@@ -183,8 +229,10 @@ async function refresh() {
     html += pill(s.shim_active ? "Cloud shim active" : "Cloud shim inactive (restart HA?)",
                  s.shim_active ? "ok" : "warn");
     if (s.mode === "cloudflared")
-      html += pill(s.cloudflared_running ? "Tunnel up" : "Tunnel down",
-                   s.cloudflared_running ? "ok" : "err");
+      html += pill(
+        s.cloudflared_running ? "Tunnel up"
+          : s.cloudflared_token_set ? "Tunnel down" : "Tunnel: no token",
+        s.cloudflared_running ? "ok" : "err");
     if (s.bridge) {
       html += pill(s.bridge.has_service_account ? "Service account set" : "No service account",
                    s.bridge.has_service_account ? "ok" : "warn");
@@ -228,6 +276,25 @@ document.querySelectorAll("button[data-copy]").forEach(button => {
     setTimeout(() => (button.textContent = "Copy"), 1200);
   };
 });
+
+$("btn-icon").onclick = () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 144;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#1a73e8";
+  ctx.beginPath();
+  ctx.roundRect(8, 8, 128, 128, 28);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 84px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("H", 72, 78);
+  const link = document.createElement("a");
+  link.download = ($("project_id").value.trim() || "project-id") + ".png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
 
 $("btn-test").onclick = async () => {
   $("test-msg").className = "msg";

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- Wizard: per-mode setup help in step 1 (cloudflared token walkthrough,
+  direct/external one-liners), "Tunnel: no token" status pill
+- Wizard: step 3 reordered to match the Google Home Developer Console form
+  top to bottom, project ID field moved first
+- Wizard: placeholder app icon generator (144×144 PNG named after project ID)
+
 ## 1.0.0
 
 - Initial release
