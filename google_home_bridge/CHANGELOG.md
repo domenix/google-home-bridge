@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Local fulfillment support: shim keeps the local SDK in step with the
+  Google-enabled pref, status surfaces "Local SDK ready" / "Local: speaker
+  connected", wizard step 6 walks through the console setup (app.js upload,
+  mDNS scan config, Support local queries). Cloud fallback automatic;
+  2FA-capable devices stay on the cloud path.
+
 ## 1.1.3
 
 - Wizard step 5: exact Google Home app path (+ → Link app or service →

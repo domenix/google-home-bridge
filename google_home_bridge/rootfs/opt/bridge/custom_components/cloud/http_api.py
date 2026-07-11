@@ -407,6 +407,8 @@ async def bridge_config(
             "google_enabled": prefs.google_enabled,
             "report_state": prefs.google_report_state,
             "agent_users": list(bridge.gconf.async_get_agent_users()),
+            "local_sdk_active": bridge.gconf.is_local_sdk_active,
+            "local_connected": bridge.gconf.is_local_connected,
             "exposed_entity_count": len(
                 google_helpers.async_get_entities(hass, bridge.gconf)
             ),

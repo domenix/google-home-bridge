@@ -84,6 +84,21 @@ Google Home app → **+** → **Link app or service** → **Works with Google** 
 search for `[test] your project`. Log in with your Home Assistant account.
 Done.
 
+### 6. Local fulfillment (optional)
+
+Google speakers can send commands directly to Home Assistant over the LAN
+(~100 ms instead of the cloud round-trip), with automatic per-command
+fallback to cloud. The bridge side is always active; enable the console
+side: download `app.js` from the
+[Local SDK releases](https://github.com/NabuCasa/home-assistant-google-assistant-local-sdk/releases/latest),
+enable **Local fulfillment** in your integration, upload `app.js` for both
+Node and Chrome targets, add an MDNS scan config (service name
+`_home-assistant._tcp.local`, name `.*\._home-assistant\._tcp\.local`),
+check **Support local queries**, save, and restart your speakers. The wizard
+shows *Local: speaker connected* once a speaker checks in. Requires speakers
+on the same LAN/mDNS domain as Home Assistant; entities that can require 2FA
+(locks, garage doors, …) stay on the cloud path by design.
+
 ## Exposure behavior
 
 On first activation the shim exposes all existing entities in Google's
@@ -107,8 +122,6 @@ re-link Nabu Casa.
   test deployments don't expire for smart home actions, but the `[test]`
   prefix shows in the Google Home app during linking.
 - Alexa, Remote UI, cloud TTS/STT and cloudhooks are not replaced.
-- Local fulfillment (LAN path) is not yet wired up; commands take the cloud
-  round-trip (typically ~300–600 ms).
 - A manual `google_assistant:` section in `configuration.yaml` conflicts with
   the bridge — remove it.
 

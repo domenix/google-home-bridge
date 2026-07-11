@@ -72,6 +72,12 @@ class BridgeGoogleConfig(GoogleConfig):
         """Perform async initialization of config."""
         await super().async_initialize()
 
+        # The parent enables the local SDK unconditionally (manual setup is
+        # always enabled); keep it in step with our enabled pref. Google
+        # falls back to cloud fulfillment per command when local is off.
+        if not self.enabled and self.is_local_sdk_active:
+            self.async_disable_local_sdk()
+
         async def on_hass_started(hass: HomeAssistant) -> None:
             if not self._prefs.settings_migrated:
                 self._async_migrate_default_expose()

@@ -154,6 +154,33 @@
   <div id="sync-msg" class="msg"></div>
 </div>
 
+<div class="card">
+  <h2>6 · Local fulfillment (optional)</h2>
+  <p>Google speakers send commands straight to Home Assistant over your LAN
+     (~100 ms instead of a cloud round-trip). Safe to enable: every command
+     automatically falls back to the cloud path if local fails. The bridge side
+     is already active — only the console needs setup:</p>
+  <ol>
+    <li>Download <code>app.js</code> from the
+      <a href="https://github.com/NabuCasa/home-assistant-google-assistant-local-sdk/releases/latest" target="_blank">Local SDK releases</a>.</li>
+    <li>In the developer console, open your integration and enable the
+      <b>Local fulfillment</b> toggle.</li>
+    <li>Upload the same <code>app.js</code> twice: once targeting <b>Node</b>,
+      once targeting <b>Chrome (browser)</b>.</li>
+    <li>Add a device scan configuration, type <b>MDNS</b>:</li>
+  </ol>
+  <div class="copyrow"><span>mDNS service name</span><span class="value" id="v-mdns">_home-assistant._tcp.local</span><button data-copy="v-mdns">Copy</button></div>
+  <div class="copyrow"><span>Name</span><span class="value" id="v-mdns-name">.*\._home-assistant\._tcp\.local</span><button data-copy="v-mdns-name">Copy</button></div>
+  <ol start="5">
+    <li>Check <b>Support local queries</b> and save.</li>
+    <li>Restart your Google speakers (or wait ~30 min), then say
+      <i>"Hey Google, sync my devices"</i>.</li>
+  </ol>
+  <p>Needs speakers on the same LAN/mDNS domain as Home Assistant. The status
+     card shows <b>Local: speaker connected</b> once a speaker checks in
+     (it polls about once a minute).</p>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 const api = (path, body) => fetch("api/" + path, body ? {
@@ -215,6 +242,11 @@ async function refresh() {
                    ? `Google linked (${s.bridge.agent_users.length})` : "Not linked yet",
                    s.bridge.agent_users.length ? "ok" : "warn");
       html += pill(`${s.bridge.exposed_entity_count} entities exposed`, "ok");
+      if (s.bridge.local_sdk_active !== undefined)
+        html += s.bridge.local_connected
+          ? pill("Local: speaker connected", "ok")
+          : pill(s.bridge.local_sdk_active ? "Local SDK ready" : "Local SDK inactive",
+                 s.bridge.local_sdk_active ? "ok" : "warn");
     }
     $("status-pills").innerHTML = html;
 
