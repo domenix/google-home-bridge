@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Wizard step 4: explicit service-account walkthrough (skip role/principals,
+  Keys → JSON key)
+
 ## 1.1.0
 
 - **Breaking:** built-in cloudflared removed — run a tunnel with a dedicated

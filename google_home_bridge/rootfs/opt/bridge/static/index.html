@@ -132,7 +132,9 @@
   <h2>4 · Service account (report state)</h2>
   <ol>
     <li>In <a href="https://console.cloud.google.com/apis/library/homegraph.googleapis.com" target="_blank">Google Cloud Console</a>, select the same project and <b>enable the HomeGraph API</b>.</li>
-    <li>Create a <a href="https://console.cloud.google.com/apis/credentials/serviceaccountkey" target="_blank">service account key</a> (JSON) and paste it below.</li>
+    <li><a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank">Create a service account</a>
+      — name it anything; <b>skip both optional steps</b> (no role, no principals), click <b>Done</b>.</li>
+    <li>Open the new account → <b>Keys → Add key → Create new key → JSON</b>, then paste the downloaded file below.</li>
   </ol>
   <label for="service_account">Service account JSON</label>
   <textarea id="service_account" placeholder='{"type": "service_account", …}'></textarea>
