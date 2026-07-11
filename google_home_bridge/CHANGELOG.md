@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2
+
+- Wizard step 5: match current Google Home app flow (+ Add → Link or
+  services), note room assignment is skippable
+
 ## 1.1.1
 
 - Wizard step 4: explicit service-account walkthrough (skip role/principals,
