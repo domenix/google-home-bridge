@@ -2,21 +2,14 @@ configuration:
   mode:
     name: Exposure mode
     description: >-
-      How Google reaches your instance. "cloudflared" runs a Cloudflare Tunnel
-      (no port forwarding needed), "direct" serves TLS on port 8124 using
-      certificates from /ssl (you port-forward 443 to it), "external" assumes
-      you already have a public HTTPS reverse proxy in front of Home Assistant.
+      How Google reaches your instance. "external" (default) assumes you
+      already publish Home Assistant over HTTPS (tunnel add-on, reverse
+      proxy, …). "direct" serves TLS on port 8124 using certificates from
+      /ssl (you port-forward 443 to it).
   public_url:
     name: Public URL
     description: >-
-      The public HTTPS base URL Google will use, e.g. https://ha-bridge.example.com.
-      Required for cloudflared and direct modes; for external mode use your
-      existing external URL.
-  cloudflared_token:
-    name: Cloudflare Tunnel token
-    description: >-
-      Token of a remotely-managed Cloudflare Tunnel whose public hostname routes
-      to http://localhost:8124. Only used in cloudflared mode.
+      The public HTTPS base URL Google will use, e.g. https://ha.example.com.
   certfile:
     name: TLS certificate file
     description: Certificate in /ssl, used in direct mode.

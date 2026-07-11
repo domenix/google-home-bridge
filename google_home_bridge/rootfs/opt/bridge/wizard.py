@@ -41,8 +41,6 @@ def create_wizard_app(options: Options, runtime: dict[str, Any]) -> web.Applicat
         status: dict[str, Any] = {
             "mode": options.mode,
             "public_url": options.public_url,
-            "cloudflared_running": runtime.get("cloudflared_running", False),
-            "cloudflared_token_set": bool(options.cloudflared_token),
             "integration_installed": installer.integration_installed(),
             "integration_up_to_date": installer.integration_up_to_date(),
             "restart_required": runtime.get("restart_required", False),

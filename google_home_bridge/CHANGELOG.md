@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- **Breaking:** built-in cloudflared removed — run a tunnel with a dedicated
+  add-on (e.g. Cloudflared) or any reverse proxy instead. `mode` now
+  defaults to `external`; `cloudflared_token` option dropped. Existing
+  installs with `mode: cloudflared` must switch to `external` or `direct`.
+- Smaller image (no cloudflared binary), simpler config
+
 ## 1.0.1
 
 - Wizard: per-mode setup help in step 1 (cloudflared token walkthrough,

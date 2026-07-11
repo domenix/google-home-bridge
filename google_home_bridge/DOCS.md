@@ -34,18 +34,14 @@ validation buttons. Summary:
 
 | Mode | What it does | Needs |
 |---|---|---|
-| `cloudflared` (default) | Runs a Cloudflare Tunnel inside the add-on. No open ports, no certificates. | Free Cloudflare account + a domain on Cloudflare |
+| `external` (default) | You publish Home Assistant over HTTPS yourself — tunnel add-on (e.g. Cloudflared), reverse proxy, VPN edge, … | Existing public HTTPS |
 | `direct` | Serves TLS itself on port 8124 using certificates from `/ssl`. | Port forward 443 → 8124, certs (e.g. Let's Encrypt/DuckDNS add-on) |
-| `external` | You already publish Home Assistant over HTTPS (reverse proxy, VPN edge, …). The add-on only runs the wizard. | Existing public HTTPS |
 
-For `cloudflared`: create a tunnel in
-[Cloudflare Zero Trust](https://one.dash.cloudflare.com/) → Networks →
-Tunnels, add a public hostname pointing to `http://localhost:8124`, and paste
-the tunnel token into the add-on configuration.
-
-> **Security note (external mode):** in `cloudflared` and `direct` modes only
-> the allow-listed paths are public. In `external` mode your existing proxy
-> decides what is exposed.
+> **Security note:** in `direct` mode only the allow-listed paths (login +
+> fulfillment) are public. In `external` mode your proxy decides what is
+> exposed — for the same allow-list filtering, point your tunnel/proxy at
+> this add-on on port `8124` (plain HTTP, add-on network) instead of at
+> Home Assistant.
 
 ### 2. Trust the proxy
 

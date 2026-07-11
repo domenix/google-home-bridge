@@ -167,38 +167,15 @@ function pill(label, state) {
 }
 
 function modeHelp(s) {
-  if (s.mode === "cloudflared") {
-    if (!s.cloudflared_token_set) {
-      return `<p><b>Tunnel not configured yet.</b> The tunnel runs inside this add-on —
-        it only needs a token (free Cloudflare account with your domain on it):</p>
-      <ol>
-        <li>Open <a href="https://one.dash.cloudflare.com/" target="_blank">Cloudflare Zero Trust</a>
-          → <b>Networks → Tunnels → Create a tunnel</b> (type: Cloudflared).</li>
-        <li>On the connector page, copy the token — the long string after
-          <code>--token</code> in the install command.</li>
-        <li>Paste it into the add-on <b>Configuration</b> tab as
-          <code>cloudflared_token</code>, save, restart the add-on.</li>
-        <li>Back in Cloudflare, add a <b>Public hostname</b>
-          (e.g. <code>ha-bridge.example.com</code>) with service
-          <code>http://localhost:8124</code>.</li>
-        <li>Enter that hostname as the URL below.</li>
-      </ol>`;
-    }
-    if (!s.cloudflared_running) {
-      return `<p class="msg err">Token is set but the tunnel is down — check the add-on
-        log. Usual causes: token pasted incompletely, or the tunnel was deleted in
-        Cloudflare.</p>`;
-    }
-    return `<p>Tunnel is running inside this add-on. Enter the public hostname you
-      configured in Cloudflare (service <code>http://localhost:8124</code>) below.</p>`;
-  }
   if (s.mode === "direct") {
     return `<p>This add-on serves TLS itself on port 8124 using certificates from
       <code>/ssl</code>. Forward port <b>443 → 8124</b> on your router and enter your
       domain below.</p>`;
   }
-  return `<p>You already publish Home Assistant over HTTPS (reverse proxy, VPN edge, …).
-    Enter that public URL below.</p>`;
+  return `<p>You publish Home Assistant over HTTPS yourself (tunnel add-on, reverse
+    proxy, …). Enter that public URL below. Optional hardening: point your tunnel or
+    proxy at this add-on on port <code>8124</code> instead of Home Assistant — then
+    only the login and fulfillment paths are public.</p>`;
 }
 
 function updateValues() {
@@ -228,11 +205,6 @@ async function refresh() {
       html += pill("Integration outdated", "warn");
     html += pill(s.shim_active ? "Cloud shim active" : "Cloud shim inactive (restart HA?)",
                  s.shim_active ? "ok" : "warn");
-    if (s.mode === "cloudflared")
-      html += pill(
-        s.cloudflared_running ? "Tunnel up"
-          : s.cloudflared_token_set ? "Tunnel down" : "Tunnel: no token",
-        s.cloudflared_running ? "ok" : "err");
     if (s.bridge) {
       html += pill(s.bridge.has_service_account ? "Service account set" : "No service account",
                    s.bridge.has_service_account ? "ok" : "warn");

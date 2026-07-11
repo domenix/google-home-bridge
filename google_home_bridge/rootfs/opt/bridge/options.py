@@ -26,7 +26,6 @@ class Options:
 
     mode: str
     public_url: str
-    cloudflared_token: str
     certfile: str
     keyfile: str
     install_integration: bool
@@ -41,9 +40,8 @@ class Options:
         except FileNotFoundError:
             raw = {}
         return cls(
-            mode=raw.get("mode", "cloudflared"),
+            mode=raw.get("mode", "external"),
             public_url=(raw.get("public_url") or "").rstrip("/"),
-            cloudflared_token=raw.get("cloudflared_token") or "",
             certfile=raw.get("certfile", "fullchain.pem"),
             keyfile=raw.get("keyfile", "privkey.pem"),
             install_integration=raw.get("install_integration", True),

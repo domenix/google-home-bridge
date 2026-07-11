@@ -1,5 +1,5 @@
 name: Google Home Bridge
-version: 1.0.1
+version: 1.1.0
 slug: google_home_bridge
 description: Self-hosted Google Home / Google Assistant voice control — replaces the Nabu Casa Google integration
 url: https://github.com/domenix/google-home-bridge
@@ -21,19 +21,17 @@ map:
 ports:
   8124/tcp: null
 ports_description:
-  8124/tcp: Public fulfillment endpoint (only needed for direct TLS mode)
+  8124/tcp: Filtered proxy endpoint (direct TLS mode; or target it from your own tunnel/reverse proxy)
 options:
-  mode: cloudflared
+  mode: external
   public_url: ""
-  cloudflared_token: ""
   certfile: fullchain.pem
   keyfile: privkey.pem
   install_integration: true
   log_level: info
 schema:
-  mode: list(cloudflared|direct|external)
+  mode: list(external|direct)
   public_url: str?
-  cloudflared_token: password?
   certfile: str
   keyfile: str
   install_integration: bool
