@@ -80,8 +80,9 @@ unavailable.
 
 ### 5. Link
 
-Google Home app → **+ Add device → Works with Google Home** → `[test] your
-project`. Log in with your Home Assistant account. Done.
+Google Home app → **+** → **Link app or service** → **Works with Google** →
+search for `[test] your project`. Log in with your Home Assistant account.
+Done.
 
 ## Exposure behavior
 

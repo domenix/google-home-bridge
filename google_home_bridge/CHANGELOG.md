@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3
+
+- Wizard step 5: exact Google Home app path (+ → Link app or service →
+  Works with Google → search)
+
 ## 1.1.2
 
 - Wizard step 5: match current Google Home app flow (+ Add → Link or
